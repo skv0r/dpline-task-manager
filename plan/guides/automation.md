@@ -177,18 +177,19 @@ git status   # должно быть clean
 
 ### F1. Создать тестовую задачу
 
-В Cursor Agent:
+В Cursor Agent: `/gh-create-task` → агент пришлёт **один** опрос → вы отвечаете **одним** сообщением, например:
 
 ```text
-/gh-create-task
-title: Тест автоматизации диспетчера
-type: pr
-label: autotest
-phase: 0
-estimate: 0.5
-status: IceBox
-body: Удалить после проверки команд. Не продукт.
+B
+B
+Практика: проверка команд
+E
+A
+A
+A
 ```
+
+(= pr, IceBox, title, label=gh-commands, phase=0, estimate/body skip) → сразу создаётся issue.
 
 Ожидание: новый issue, карточка на доске, строка в `plan/backlog.md` (секция `backlog:auto`).
 
@@ -240,8 +241,9 @@ Closes #21
 ## Повседневный цикл (когда всё настроено)
 
 ```text
-1. В чате: /gh-create-task …     → issue + Ready/IceBox + backlog
-2. В чате: /gh-start-task N      → In Progress + ветка type-N-label
+1. В чате: /gh-create-task …        → корневой issue + Project + backlog
+1b.В чате: /gh-create-subtask …     → sub-issue под #parent (можно и под другим sub-issue)
+2. В чате: /gh-start-task N         → In Progress + ветка type-N-label
 3. Вы: код
 4. Вы: commit + push
 5. Вы: open PR → base=dev, Closes #N
@@ -255,13 +257,15 @@ Closes #21
 
 ## Команды — детали
 
-Файлы: `.cursor/commands/gh-create-task.md`, `gh-start-task.md`.
+Файлы: `.cursor/commands/gh-create-task.md`, `gh-create-subtask.md`, `gh-start-task.md`.
 
 ### `/gh-create-task`
 
 Скрипт: `scripts/gh/create-task.sh`
 
-Параметры:
+**UX:** один опрос в чате → один ответ → сразу создание (без пошаговых вопросов).
+
+Параметры (из ответа на опрос):
 
 | Поле | Обязательно | Пример |
 |------|-------------|--------|
@@ -274,6 +278,25 @@ Closes #21
 | body | нет | acceptance |
 
 Имя будущей ветки: `{type}-{номер}-{label}`.
+
+### `/gh-create-subtask`
+
+Скрипт: `scripts/gh/create-subtask.sh` (= `create-task.sh --parent N`).
+
+Тот же UX «один опрос → сразу», плюс обязательный **parent** (номер issue или уже существующего sub-issue для вложенности).
+
+Пример ответа:
+
+```text
+10
+A
+A
+Пустой api с /health
+C
+A
+C
+A
+```
 
 ### `/gh-start-task N`
 
@@ -298,7 +321,8 @@ Closes #21
 
 | Скрипт | Назначение |
 |--------|------------|
-| `scripts/gh/create-task.sh` | создать задачу |
+| `scripts/gh/create-task.sh` | создать задачу (`--parent` опционально) |
+| `scripts/gh/create-subtask.sh` | sub-issue (обязателен `--parent`) |
 | `scripts/gh/start-task.sh` | старт + ветка |
 | `scripts/gh/sync-backlog.py` | open issues → backlog auto-секция |
 | `scripts/gh/on-pr-merged-dev.sh` | close + Done (вызывает CI) |

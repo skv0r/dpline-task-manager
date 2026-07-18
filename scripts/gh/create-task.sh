@@ -9,11 +9,13 @@
 #     --phase 0 \
 #     --estimate 1 \
 #     --status Ready \
-#     --body "Acceptance: …"
+#     --body "Acceptance: …" \
+#     [--parent 10]
 #
 # --type: app | pr
 # --status: IceBox | Ready (default Ready)
 # --label: short slug used later in branch name (app-13-docs)
+# --parent: optional parent issue number → create as GitHub sub-issue
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,6 +32,7 @@ ESTIMATE=""
 STATUS="Ready"
 BODY=""
 PRIORITY=""
+PARENT=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -41,13 +44,26 @@ while [[ $# -gt 0 ]]; do
     --status) STATUS="$2"; shift 2 ;;
     --body) BODY="$2"; shift 2 ;;
     --priority) PRIORITY="$2"; shift 2 ;;
+    --parent) PARENT="$2"; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 1 ;;
   esac
 done
 
 if [[ -z "$TITLE" || -z "$TYPE" || -z "$LABEL" ]]; then
-  echo "usage: $0 --title T --type app|pr --label slug [--phase 0] [--estimate 1] [--status Ready|IceBox] [--body ...]" >&2
+  echo "usage: $0 --title T --type app|pr --label slug [--parent N] [--phase 0] [--estimate 1] [--status Ready|IceBox] [--body ...]" >&2
   exit 1
+fi
+
+if [[ -n "$PARENT" && ! "$PARENT" =~ ^[0-9]+$ ]]; then
+  echo "error: --parent must be issue number" >&2
+  exit 1
+fi
+
+if [[ -n "$PARENT" ]]; then
+  if ! gh issue view "$PARENT" --repo "$REPO" --json number >/dev/null 2>&1; then
+    echo "error: parent issue #${PARENT} не найден в ${REPO}" >&2
+    exit 1
+  fi
 fi
 
 if [[ "$TYPE" != "app" && "$TYPE" != "pr" ]]; then
@@ -78,15 +94,26 @@ trap 'rm -f "$BODY_FILE"' EXIT
   echo "- type: \`${TYPE}\`"
   echo "- label: \`${LABEL}\`"
   echo "- phase: \`${PHASE}\`"
+  if [[ -n "$PARENT" ]]; then
+    echo "- parent: \`#${PARENT}\`"
+  fi
   echo "- branch: \`${TYPE}-<n>-${LABEL}\` (n = номер issue после создания)"
 } >"$BODY_FILE"
 
-echo "→ создаю issue в ${REPO}…"
-ISSUE_URL="$(gh issue create \
-  --repo "$REPO" \
-  --title "$TITLE" \
-  --label "$GH_LABEL" \
-  --body-file "$BODY_FILE")"
+CREATE_ARGS=(
+  --repo "$REPO"
+  --title "$TITLE"
+  --label "$GH_LABEL"
+  --body-file "$BODY_FILE"
+)
+if [[ -n "$PARENT" ]]; then
+  CREATE_ARGS+=(--parent "$PARENT")
+  echo "→ создаю sub-issue под #${PARENT} в ${REPO}…"
+else
+  echo "→ создаю issue в ${REPO}…"
+fi
+
+ISSUE_URL="$(gh issue create "${CREATE_ARGS[@]}")"
 
 ISSUE_NUM="$(basename "$ISSUE_URL")"
 echo "✓ issue #${ISSUE_NUM}: ${ISSUE_URL}"
@@ -110,8 +137,9 @@ else
   else
     set_single_select_field "$ITEM_ID" "Type" "Prac" || set_single_select_field "$ITEM_ID" "Type" "prac" || true
   fi
+  # Phase на доске — Single select ("0","1"), не Number
   if [[ -n "$PHASE" ]]; then
-    set_number_field "$ITEM_ID" "Phase" "$PHASE" || true
+    set_single_select_field "$ITEM_ID" "Phase" "$PHASE" || true
   fi
   if [[ -n "$ESTIMATE" ]]; then
     set_number_field "$ITEM_ID" "Estimate" "$ESTIMATE" || true
@@ -129,5 +157,8 @@ echo ""
 echo "=== готово ==="
 echo "issue:  #${ISSUE_NUM}"
 echo "url:    ${ISSUE_URL}"
+if [[ -n "$PARENT" ]]; then
+  echo "parent: #${PARENT}"
+fi
 echo "branch: ${BRANCH_NAME}  (создать: /gh-start-task ${ISSUE_NUM}  или  scripts/gh/start-task.sh ${ISSUE_NUM})"
 echo "status: ${STATUS}"
