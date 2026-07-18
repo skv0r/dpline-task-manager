@@ -8,7 +8,7 @@
 | [vision.md](./vision.md) | Цели, не-цели, для кого продукт |
 | [roadmap.md](./roadmap.md) | Фазы и приоритеты по времени |
 | [working-agreement.md](./working-agreement.md) | Как мы работаем (роли, Project, ветки, ритуал) — коротко |
-| [guides/](./guides/) | Теория с практикой мало: git flow, ADR (длинные гайды) |
+| [guides/](./guides/) | Теория: git flow, ADR, **automation** (команды/Bugbot/Actions) |
 | [backlog.md](./backlog.md) | Зеркало Project/Issues для ИИ |
 | [decisions/](./decisions/) | ADR-файлы решений + короткий шаблон |
 | [sessions/](./sessions/) | Бухгалтерия памяти после сессий |
