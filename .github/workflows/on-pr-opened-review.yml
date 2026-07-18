@@ -1,0 +1,45 @@
+name: On PR → Project Review
+
+# When a PR is opened (or body/links updated), move linked issues to Review.
+# Does NOT change default branch: works for PRs into any base (dev/main).
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, ready_for_review]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  to-review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve token
+        run: |
+          if [ -n "${{ secrets.GH_PROJECT_TOKEN }}" ]; then
+            echo "::notice::Using GH_PROJECT_TOKEN for Project Status=Review"
+          else
+            echo "::warning::GH_PROJECT_TOKEN не задан — Status=Review скорее всего не выставится. Добавьте PAT (repo + project) в Actions secrets."
+          fi
+
+      - name: Linked issues → Review
+        env:
+          DPLINE_PROJECT_OWNER: skv0r
+          DPLINE_PROJECT_NUMBER: "1"
+        run: |
+          if [ -n "${{ secrets.GH_PROJECT_TOKEN }}" ]; then
+            export GH_TOKEN="${{ secrets.GH_PROJECT_TOKEN }}"
+          else
+            export GH_TOKEN="${{ github.token }}"
+          fi
+          chmod +x scripts/gh/*.sh
+          scripts/gh/set-linked-issues-status.sh \
+            "${{ github.event.pull_request.number }}" \
+            "${{ github.repository }}" \
+            "Review"
