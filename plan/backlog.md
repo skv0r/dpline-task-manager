@@ -1,15 +1,31 @@
 # Бэклог
 
-Обновляй по мере жизни. Статусы: `todo` | `doing` | `done`.
+Зеркало GitHub Project / Issues для ИИ. **Статус правды — на доске**, здесь краткий индекс.
 
-## Ближайший фокус (Фаза 0)
+Project: [DPLine Flow](https://github.com/users/skv0r/projects/1)  
+Обновляет ассистент после чтения Project.
 
-- [ ] `todo` Инициализировать монорепу (структура пакетов, workspace).
-- [ ] `todo` Поднять пустой `api` с `/health`.
-- [ ] `todo` Поднять пустой `web` с одной страницей.
-- [ ] `todo` Подключить PostgreSQL локально и переменные окружения.
-- [ ] `todo` CI: lint + typecheck (+ пустой `test` если уже есть).
-- [ ] `todo` ADR: выбор пакетного менеджера и тулчейна монорепы.
+Статусы зеркала: `IceBox` | `Ready` | `In Progress` | `Review` | `Done` (как колонки Project).
+
+## Родитель сессии процесса
+
+| Issue | Название | Status | Type | Phase |
+|-------|----------|--------|------|-------|
+| [#1](https://github.com/skv0r/dpline-task-manager/issues/1) | app-1-docs (диспетчерская + правила в plan/) | IceBox | App | 0 |
+
+## Фаза 0 (исполняемые)
+
+| Issue | Название | Status | Type | Phase | Estimate |
+|-------|----------|--------|------|-------|----------|
+| [#10](https://github.com/skv0r/dpline-task-manager/issues/10) | Инициализировать монорепу | Ready | App | 0 | 2–3 h |
+| [#11](https://github.com/skv0r/dpline-task-manager/issues/11) | Пустой api с `/health` | Ready | App | 0 | 1–2 h |
+| [#12](https://github.com/skv0r/dpline-task-manager/issues/12) | Пустой web с одной страницей | Ready | App | 0 | 1–2 h |
+| [#15](https://github.com/skv0r/dpline-task-manager/issues/15) | ADR: пакетный менеджер / тулчейн монорепы | Ready | App | 0 | 1 h |
+| [#16](https://github.com/skv0r/dpline-task-manager/issues/16) | Практика: git flow (ветка → PR → merge в `dev`) | In Progress | Prac | 0 | 0.5–1 h |
+| [#14](https://github.com/skv0r/dpline-task-manager/issues/14) | CI: lint + typecheck | IceBox | App | 0 | 2 h |
+| [#17](https://github.com/skv0r/dpline-task-manager/issues/17) | PostgreSQL локально + env | IceBox | App | 0 | 2 h |
+
+Закрытые дубли (не брать в работу): `#2`–`#9`, `#13`.
 
 ## После Фазы 0
 
@@ -18,9 +34,10 @@
 - [ ] `todo` ADR: стратегия auth (один пользователь).
 - [ ] `todo` Первая миграция + CRUD задачи.
 
-## Идеи «не сейчас»
+## Идеи «не сейчас» (IceBox / вне доски)
 
 - Telegram Mini App.
 - Офлайн + sync.
 - ИИ поверх конспектов.
 - Импорт задач из GitHub.
+- Недельная статистика + Chart.js в DPline (позже).
