@@ -4,7 +4,8 @@
 
 | Guide | Тема | Уровень |
 |-------|------|---------|
-| [git-flow.md](./git-flow.md) | Ветки `main`/`dev`/`app-*`/`pr*`, PR, конфликты, чеклисты | новичок → intern |
+| [git-flow.md](./git-flow.md) | Ветки `main`/`dev`/`app-N-label`/`pr-N-label`, PR, конфликты | новичок → intern |
 | [adr.md](./adr.md) | Зачем ADR, когда писать, шаблон, связь с issue/PR | новичок → intern |
+| [automation.md](./automation.md) | `/gh-create-task`, `/gh-start-task`, Actions, Bugbot | практический setup |
 
-Новые темы (Projects, Bugbot, monorepo DX…) — сюда же, по мере надобности, а не раздуванием working-agreement.
+Новые темы — сюда же, не раздувая working-agreement.

@@ -31,16 +31,28 @@ Project: [DPLine Flow](https://github.com/users/skv0r/projects/1)
 
 | Ветка | Смысл |
 |-------|--------|
-| `main` | Прод: стабильный продукт |
+| `main` | Прод: стабильный продукт (**default** на GitHub — так и оставляем) |
 | `dev` | Рабочая сборка; сюда мержим завершённые задачи |
-| `app-<номер><код>` | Продуктовая задача, напр. `app-13fr` (frontend), `app-11be` |
-| `pr<номер><слово>` | Практика, напр. `pr16gitflow` |
+| `app-<номер>-<label>` | Продукт, напр. `app-13-docs`, `app-11-health` |
+| `pr-<номер>-<label>` | Практика, напр. `pr-12-gitverse` |
+
+Формат **строго** `{app\|pr}-{номер}-{label}` (kebab). Старые имена вроде `app-13fr` / `pr16gitflow` — deprecated.
 
 Подзадачи при необходимости ветвятся **от ветки задачи**, не от `main`. На каждом уровне: PR → конфликты → merge → в итоге в `dev`.
 
-Связь с issue: в PR указывать `Closes #N` / `Refs #N`.
+Связь с issue: в PR указывать `Closes #N` / `Refs #N`. Merge в `dev` закрывает issue через Actions (не через default-branch magic).
 
-Теория и разбор ошибок: [guides/git-flow.md](./guides/git-flow.md).
+Теория: [guides/git-flow.md](./guides/git-flow.md). Автоматизация: [guides/automation.md](./guides/automation.md).
+
+## Команды Cursor (диспетчер)
+
+| Команда | Эффект |
+|---------|--------|
+| `/gh-create-task` | Issue + Project + `plan/backlog.md` |
+| `/gh-start-task N` | Status → In Progress + локальная ветка от `dev` |
+
+Ты: код → commit → push → **сам** открываешь PR → правишь по Bugbot → merge.  
+Ассистент: tasks/Project/md/session.
 
 ## Формат сессии
 
@@ -50,7 +62,9 @@ Project: [DPLine Flow](https://github.com/users/skv0r/projects/1)
 
 ## Ревью
 
-После значимого куска кода — запрос ревью: границы, ошибки, безопасность, гонки. Позже: Bugbot на PR + `/review` до push. Замечания-повторялки — в backlog или чеклист перед коммитом.
+- На PR: **Cursor Bugbot** (см. `.cursor/BUGBOT.md` + [guides/automation.md](./guides/automation.md)).
+- Локально перед push: `/review` / `/review-bugbot` по желанию.
+- Ассистент в чате — по запросу: границы, ошибки, безопасность, гонки.
 
 ## Документы (ADR)
 
