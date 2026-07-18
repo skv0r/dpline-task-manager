@@ -7,8 +7,9 @@
 | [main.md](./main.md) | Краткий свод: продукт, стек, ограничения, ссылки на остальное |
 | [vision.md](./vision.md) | Цели, не-цели, для кого продукт |
 | [roadmap.md](./roadmap.md) | Фазы и приоритеты по времени |
-| [working-agreement.md](./working-agreement.md) | Как мы работаем (менторство, ревью, теория) |
-| [backlog.md](./backlog.md) | Бэклог: что делать дальше, чеклисты |
-| [decisions/](./decisions/) | ADR: зачем выбрали технологию / отказались |
-| [sessions/](./sessions/) | Короткие записи после сессий (опционально) |
-| [startprompt.md](./startprompt.md) | Текст для вставки в ИИ, чтобы быстро подхватить контекст |
+| [working-agreement.md](./working-agreement.md) | Как мы работаем (роли, Project, ветки, ритуал) — коротко |
+| [guides/](./guides/) | Теория с практикой мало: git flow, ADR (длинные гайды) |
+| [backlog.md](./backlog.md) | Зеркало Project/Issues для ИИ |
+| [decisions/](./decisions/) | ADR-файлы решений + короткий шаблон |
+| [sessions/](./sessions/) | Бухгалтерия памяти после сессий |
+| [startprompt.md](./startprompt.md) | Текст для вставки в ИИ (короткий) |
