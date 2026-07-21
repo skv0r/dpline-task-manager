@@ -1,5 +1,9 @@
 {
-    "name": "@dpline/api",
-    "private": true,
-    "version": "0.0.0"
+  "name": "@dpline/api",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "echo 'TODO #11: API /health'",
+    "build": "echo 'TODO #11: build'"
+  }
 }

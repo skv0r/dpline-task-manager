@@ -1,5 +1,9 @@
 {
-    "name": "@dpline/web",
-    "private": true,
-    "version": "0.0.0"
+  "name": "@dpline/web",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "echo 'TODO #12: Vite + React'",
+    "build": "echo 'TODO #12: build'"
+  }
 }
