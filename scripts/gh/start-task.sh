@@ -42,6 +42,20 @@ fi
 
 TYPE="$(echo "$BODY" | sed -nE 's/.*type: `([^`]+)`.*/\1/p' | head -1)"
 LABEL="$(echo "$BODY" | sed -nE 's/.*label: `([^`]+)`.*/\1/p' | head -1)"
+PHASE="$(echo "$BODY" | sed -nE 's/.*phase: `([^`]+)`.*/\1/p' | head -1)"
+
+sync_project_fields_from_meta() {
+  local item_id="$1"
+  [[ -z "$item_id" ]] && return 0
+  if [[ "$TYPE" == "app" ]]; then
+    set_single_select_field "$item_id" "Type" "App" || set_single_select_field "$item_id" "Type" "app" || true
+  elif [[ "$TYPE" == "pr" ]]; then
+    set_single_select_field "$item_id" "Type" "Prac" || set_single_select_field "$item_id" "Type" "prac" || true
+  fi
+  if [[ -n "$PHASE" ]]; then
+    set_single_select_field "$item_id" "Phase" "$PHASE" || true
+  fi
+}
 
 if [[ -n "$LABEL_OVERRIDE" ]]; then
   LABEL="$(slugify "$LABEL_OVERRIDE")"
@@ -72,13 +86,17 @@ echo "→ ветка: ${BRANCH}"
 # Project → In Progress
 ITEM_ID="$(item_id_for_issue "$ISSUE_NUM" || true)"
 if [[ -n "${ITEM_ID:-}" ]]; then
+  sync_project_fields_from_meta "$ITEM_ID"
   set_project_status "$ITEM_ID" "In Progress" || true
 else
   echo "warn: issue нет в Project — добавляю…" >&2
   gh project item-add "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --url "https://github.com/${REPO}/issues/${ISSUE_NUM}" >/dev/null || true
   sleep 1
   ITEM_ID="$(item_id_for_issue "$ISSUE_NUM" || true)"
-  [[ -n "${ITEM_ID:-}" ]] && set_project_status "$ITEM_ID" "In Progress" || true
+  if [[ -n "${ITEM_ID:-}" ]]; then
+    sync_project_fields_from_meta "$ITEM_ID"
+    set_project_status "$ITEM_ID" "In Progress" || true
+  fi
 fi
 
 # Git branch from fresh dev
