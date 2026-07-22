@@ -243,13 +243,13 @@ Closes #21
 ```text
 1. В чате: /gh-create-task …        → корневой issue + Project + backlog
 1b.В чате: /gh-create-subtask …     → sub-issue под #parent (можно и под другим sub-issue)
-2. В чате: /gh-start-task N         → In Progress + ветка type-N-label
+2. В чате: /gh-start-task N         → In Progress + Start date + ветка type-N-label
 3. Вы: код
 4. Вы: commit + push
 5. Вы: open PR → base=dev, Closes #N
 6. Bugbot: комментарии → вы правите → push
 7. Вы: Merge
-8. Actions: close + Done
+8. Actions: close + Done + Target date (дата закрытия)
 9. В чате: ассистент пишет plan/sessions/… + push (сессия не без push)
 ```
 
