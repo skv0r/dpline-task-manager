@@ -355,4 +355,5 @@ python3 scripts/gh/sync-backlog.py
 | `working tree not clean` на start | commit или `git stash` |
 | issue не закрылся после merge | workflow в Actions; в PR есть `Closes #N`; merge именно в `dev` |
 | Done не ставится | secret `GH_PROJECT_TOKEN`; имя колонки `Done` |
+| На доске дубль «левая» карточка PR | Project → Workflows → отключи **Auto-add** для Pull requests; скрипт Review/Done также снимает PR с доски |
 | Bugbot молчит | dashboard: репо включён; лимит usage; автор PR = тот же GitHub, что связан с Cursor |

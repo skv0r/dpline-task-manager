@@ -200,3 +200,35 @@ set_date_field() {
 today_ymd() {
   date +%Y-%m-%d
 }
+
+# Project item id for a PR (auto-add workflow often adds PR cards — we remove them)
+item_id_for_pr() {
+  local pr_num="$1"
+  local pn="${PROJECT_NUMBER}"
+  gh api graphql \
+    -f query='query($o:String!,$r:String!,$n:Int!){ repository(owner:$o,name:$r){ pullRequest(number:$n){ projectItems(first:20){ nodes { id project { number } } } } } }' \
+    -f o="$(_repo_owner)" \
+    -f r="$(_repo_name)" \
+    -F n="$pr_num" \
+    --jq ".data.repository.pullRequest.projectItems.nodes[]? | select(.project.number == ${pn}) | .id" \
+    2>/dev/null | head -1 || true
+}
+
+# Убрать карточку PR с доски (оставляем только linked issues)
+remove_pr_from_project() {
+  local pr_num="$1"
+  local item_id pid
+  item_id="$(item_id_for_pr "$pr_num")"
+  if [[ -z "${item_id:-}" || "$item_id" == "null" ]]; then
+    return 0
+  fi
+  pid="$(project_id)" || return 0
+  if gh api graphql \
+    -f query='mutation($p:ID!,$i:ID!){ deleteProjectV2Item(input:{projectId:$p,itemId:$i}){ deletedItemId } }' \
+    -f p="$pid" \
+    -f i="$item_id" >/dev/null 2>&1; then
+    echo "✓ PR #${pr_num} убран с Project (на доске только issues)"
+  else
+    echo "warn: не удалось убрать PR #${pr_num} с Project" >&2
+  fi
+}

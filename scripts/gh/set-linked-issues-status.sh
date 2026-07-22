@@ -68,3 +68,6 @@ if [[ "$FAILED" -ne 0 ]]; then
   echo "error: не все linked issues переведены в ${STATUS_NAME}" >&2
   exit 1
 fi
+
+# Project «Auto-add» часто кидает сам PR на доску — дубль рядом с issue. Убираем.
+remove_pr_from_project "$PR_NUMBER" || true
