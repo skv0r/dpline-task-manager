@@ -5,6 +5,8 @@ set -euo pipefail
 REPO="${DPLINE_REPO:-skv0r/dpline-task-manager}"
 PROJECT_OWNER="${DPLINE_PROJECT_OWNER:-skv0r}"
 PROJECT_NUMBER="${DPLINE_PROJECT_NUMBER:-1}"
+# Optional cache — GraphQL fallback if `gh project --owner` fails in CI
+# ("unknown owner type" = often bad/expired token OR gh OwnerIDAndType bug)
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BACKLOG_FILE="${ROOT_DIR}/plan/backlog.md"
 
@@ -23,35 +25,100 @@ slugify() {
   echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' | cut -c1-40
 }
 
-# Resolve Project V2 node id
-project_id() {
-  gh project view "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json --jq '.id'
+_repo_owner() {
+  echo "${REPO%%/*}"
 }
 
-# Find Status field option id by name (IceBox, Ready, In Progress, Review, Done)
+_repo_name() {
+  echo "${REPO#*/}"
+}
+
+# Resolve Project V2 node id (CLI first, then GraphQL user/org)
+project_id() {
+  local id
+  id="$(gh project view "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json --jq '.id' 2>/dev/null || true)"
+  if [[ -n "${id:-}" && "$id" != "null" ]]; then
+    echo "$id"
+    return 0
+  fi
+  id="$(gh api graphql \
+    -f query='query($login:String!,$n:Int!){user(login:$login){projectV2(number:$n){id}} organization(login:$login){projectV2(number:$n){id}} }' \
+    -f login="$PROJECT_OWNER" \
+    -F n="$PROJECT_NUMBER" \
+    --jq '.data.user.projectV2.id // .data.organization.projectV2.id // empty' 2>/dev/null || true)"
+  if [[ -z "${id:-}" ]]; then
+    echo "error: не удалось получить project id (#${PROJECT_NUMBER} owner=${PROJECT_OWNER}). Проверь GH_TOKEN scopes: project, read:project." >&2
+    return 1
+  fi
+  echo "$id"
+}
+
+# Status / single-select options via GraphQL (works when `gh project field-list --owner` fails)
+_project_field_json() {
+  local pid field_name
+  pid="$(project_id)"
+  field_name="$1"
+  gh api graphql \
+    -f query='query($id:ID!){ node(id:$id){ ... on ProjectV2 { fields(first:50){ nodes { ... on ProjectV2SingleSelectField { id name options { id name } } ... on ProjectV2FieldCommon { id name } } } } } }' \
+    -f id="$pid" \
+    --jq --arg n "$field_name" '
+      .data.node.fields.nodes[]
+      | select(.name==$n)
+    '
+}
+
 status_option_id() {
   local name="$1"
-  gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
+  local opt
+  opt="$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null \
     | jq -r --arg n "$name" '
         .fields[]?
         | select(.name=="Status")
         | .options[]?
         | select(.name==$n)
         | .id
-      '
+      ' || true)"
+  if [[ -n "${opt:-}" && "$opt" != "null" ]]; then
+    echo "$opt"
+    return 0
+  fi
+  _project_field_json "Status" | jq -r --arg n "$name" '.options[]? | select(.name==$n) | .id' | head -1
 }
 
 field_id_by_name() {
   local name="$1"
-  gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
-    | jq -r --arg n "$name" '.fields[]? | select(.name==$n) | .id'
+  local fid
+  fid="$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null \
+    | jq -r --arg n "$name" '.fields[]? | select(.name==$n) | .id' || true)"
+  if [[ -n "${fid:-}" && "$fid" != "null" ]]; then
+    echo "$fid"
+    return 0
+  fi
+  _project_field_json "$name" | jq -r '.id // empty'
 }
 
-# Find project item id for an issue number in REPO
+# Find project item id for an issue number — prefer issue.projectItems (no --owner)
 item_id_for_issue() {
   local issue_num="$1"
-  local issue_url="https://github.com/${REPO}/issues/${issue_num}"
-  gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json --limit 200 \
+  local item_id issue_url
+  item_id="$(gh api graphql \
+    -f query='query($o:String!,$r:String!,$n:Int!){ repository(owner:$o,name:$r){ issue(number:$n){ projectItems(first:20){ nodes { id project { number } } } } } }' \
+    -f o="$(_repo_owner)" \
+    -f r="$(_repo_name)" \
+    -F n="$issue_num" \
+    --jq --argjson pn "$PROJECT_NUMBER" '
+      .data.repository.issue.projectItems.nodes[]?
+      | select(.project.number == $pn)
+      | .id
+    ' 2>/dev/null | head -1 || true)"
+  if [[ -n "${item_id:-}" && "$item_id" != "null" ]]; then
+    echo "$item_id"
+    return 0
+  fi
+
+  # Fallback: gh project item-list (локально обычно ок)
+  issue_url="https://github.com/${REPO}/issues/${issue_num}"
+  gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json --limit 200 2>/dev/null \
     | jq -r --arg url "$issue_url" --argjson n "$issue_num" '
         .items[]?
         | select(
@@ -70,7 +137,7 @@ set_project_status() {
   field_id="$(field_id_by_name "Status")"
   opt_id="$(status_option_id "$status_name")"
   if [[ -z "$field_id" || -z "$opt_id" || -z "$pid" ]]; then
-    echo "warn: не удалось выставить Status=$status_name (проверь название колонки и права gh)" >&2
+    echo "warn: не удалось выставить Status=$status_name (field=$field_id opt=$opt_id pid=$pid)" >&2
     return 1
   fi
   gh project item-edit --id "$item_id" --project-id "$pid" --field-id "$field_id" --single-select-option-id "$opt_id"
@@ -83,10 +150,13 @@ set_single_select_field() {
   local pid field_id opt_id
   pid="$(project_id)"
   field_id="$(field_id_by_name "$field_name")"
-  opt_id="$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
+  opt_id="$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null \
     | jq -r --arg f "$field_name" --arg o "$option_name" '
         .fields[]? | select(.name==$f) | .options[]? | select(.name==$o) | .id
-      ')"
+      ' || true)"
+  if [[ -z "${opt_id:-}" || "$opt_id" == "null" ]]; then
+    opt_id="$(_project_field_json "$field_name" | jq -r --arg o "$option_name" '.options[]? | select(.name==$o) | .id' | head -1)"
+  fi
   if [[ -z "$field_id" || -z "$opt_id" ]]; then
     echo "warn: поле $field_name=$option_name не выставлено (нет такого option?)" >&2
     return 1

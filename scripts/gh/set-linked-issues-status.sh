@@ -29,20 +29,34 @@ ALL="$(printf '%s\n%s\n' "$BODY_NUMS" "$REF_NUMS" | grep -E '^[0-9]+$' | sort -u
 
 if [[ -z "$ALL" ]]; then
   echo "No linked issues found for PR #${PR_NUMBER}."
+  echo "hint: укажи в body PR: Closes #N (или Close/Fixes/Resolves #N)" >&2
   exit 0
 fi
 
+FAILED=0
 for n in $ALL; do
   echo "→ #${n}"
   if [[ -z "$(item_id_for_issue "$n" || true)" ]]; then
+    # item-add может падать с unknown owner type в CI — не блокируем GraphQL path
     gh project item-add "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" \
-      --url "https://github.com/${REPO}/issues/${n}" >/dev/null || true
+      --url "https://github.com/${REPO}/issues/${n}" >/dev/null 2>&1 || true
     sleep 1
   fi
   ITEM_ID="$(item_id_for_issue "$n" || true)"
   if [[ -z "${ITEM_ID:-}" ]]; then
-    echo "warn: #${n} not on Project" >&2
+    echo "error: #${n} not on Project (проверь GH_PROJECT_TOKEN: scopes project + read:project, не истёк)" >&2
+    FAILED=1
     continue
   fi
-  set_project_status "$ITEM_ID" "$STATUS_NAME" || echo "warn: failed Status=${STATUS_NAME} for #${n}" >&2
+  if ! set_project_status "$ITEM_ID" "$STATUS_NAME"; then
+    echo "error: failed Status=${STATUS_NAME} for #${n}" >&2
+    FAILED=1
+  else
+    echo "✓ #${n} → ${STATUS_NAME}"
+  fi
 done
+
+if [[ "$FAILED" -ne 0 ]]; then
+  echo "error: не все linked issues переведены в ${STATUS_NAME}" >&2
+  exit 1
+fi
