@@ -205,7 +205,7 @@ A
 
 Ожидание:
 
-- Project → **In Progress**  
+- Project → **In Progress**, **Start date** = сегодня  
 - локальная ветка `pr-21-autotest`  
 - вы на этой ветке  
 
@@ -229,7 +229,7 @@ Closes #21
 ### F4. Проверить автоматику после merge
 
 - Issue `#21` → **Closed** (workflow).  
-- Project → **Done** (если secret ок).  
+- Project → **Done**, **Target date** = сегодня (дата закрытия; если secret ок).  
 - Actions: вкладка Actions репо → workflow **On PR merged to dev** → зелёный.
 
 Если issue закрылся, а Done нет — проверьте `GH_PROJECT_TOKEN` и имена колонок (`Done` точно так же, как на доске).

@@ -83,11 +83,12 @@ BRANCH="${TYPE}-${ISSUE_NUM}-${LABEL}"
 echo "→ issue #${ISSUE_NUM}: ${TITLE}"
 echo "→ ветка: ${BRANCH}"
 
-# Project → In Progress
+# Project → In Progress + Start date (дата открытия/старта)
 ITEM_ID="$(item_id_for_issue "$ISSUE_NUM" || true)"
 if [[ -n "${ITEM_ID:-}" ]]; then
   sync_project_fields_from_meta "$ITEM_ID"
   set_project_status "$ITEM_ID" "In Progress" || true
+  set_date_field "$ITEM_ID" "Start date" "$(today_ymd)" || true
 else
   echo "warn: issue нет в Project — добавляю…" >&2
   gh project item-add "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --url "https://github.com/${REPO}/issues/${ISSUE_NUM}" >/dev/null || true
@@ -96,6 +97,7 @@ else
   if [[ -n "${ITEM_ID:-}" ]]; then
     sync_project_fields_from_meta "$ITEM_ID"
     set_project_status "$ITEM_ID" "In Progress" || true
+    set_date_field "$ITEM_ID" "Start date" "$(today_ymd)" || true
   fi
 fi
 
