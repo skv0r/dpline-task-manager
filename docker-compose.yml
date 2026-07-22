@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: dpline-db
+    environment:
+      POSTGRES_USER: dpline
+      POSTGRES_PASSWORD: dpline
+      POSTGRES_DB: dpline
+    ports:
+      - "5432:5432"
+    volumes:
+      - dpline_pg_data:/var/lib/postgresql/data
+
+volumes:
+  dpline_pg_data:
