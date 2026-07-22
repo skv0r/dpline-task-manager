@@ -35,8 +35,7 @@ Project: [DPLine Flow](https://github.com/users/skv0r/projects/1)
 | Issue | Название | State | Type | Phase | Branch | Labels |
 |-------|----------|-------|------|-------|--------|--------|
 | [#1](https://github.com/skv0r/dpline-task-manager/issues/1) | app-1-docs | open | ? | ? | `` | documentation |
-| [#11](https://github.com/skv0r/dpline-task-manager/issues/11) | Пустой api с /health | open | app | 0 | `app-11-health` | enhancement |
-| [#12](https://github.com/skv0r/dpline-task-manager/issues/12) | Пустой web с одной страницей | open | ? | ? | `` | enhancement |
+| [#12](https://github.com/skv0r/dpline-task-manager/issues/12) | Пустой web с одной страницей | open | app | 0 | `app-12-web` | enhancement |
 | [#14](https://github.com/skv0r/dpline-task-manager/issues/14) | CI: lint + typecheck | open | ? | ? | `` | enhancement |
 | [#17](https://github.com/skv0r/dpline-task-manager/issues/17) | PostgreSQL локально + env | open | ? | ? | `` | enhancement |
 <!-- backlog:auto:end -->
