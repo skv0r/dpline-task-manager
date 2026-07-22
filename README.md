@@ -14,6 +14,7 @@
 
 - **Node** 20.x LTS (`node -v` → например `v20.18.0`)
 - **pnpm** 9.x (`pnpm -v` → `9.15.9`)
+- **Docker** (Docker Desktop) — для PostgreSQL
 
 Установка pnpm (если ещё нет):
 
@@ -42,13 +43,29 @@ pnpm lint        # ESLint (сейчас web)
 pnpm typecheck   # tsc по apps/*
 ```
 
+### PostgreSQL
+
+Нужен запущенный Docker Desktop.
+
+```bash
+cp .env.example .env          # один раз; .env в git не коммитится
+docker compose up -d
+docker compose ps             # сервис db / dpline-db
+```
+
+Строка подключения — `DATABASE_URL` в `.env` (шаблон в [`.env.example`](./.env.example)).
+
+Остановка: `docker compose down` (данные в volume сохраняются; `down -v` — сбросить БД).
+
 ### API (health)
 
 ```bash
 pnpm --filter @dpline/api dev
 curl -s http://localhost:3001/health
-# → {"status":"ok"}  на http://localhost:3001
+# → {"status":"ok","databaseUrlConfigured":true}
 ```
+
+Api читает корневой `.env` через `dotenv` и логирует `DATABASE_URL` без пароля.
 
 ### Web
 
