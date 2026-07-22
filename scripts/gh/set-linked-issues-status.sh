@@ -53,6 +53,14 @@ for n in $ALL; do
     FAILED=1
   else
     echo "✓ #${n} → ${STATUS_NAME}"
+    # Done → Target date = дата закрытия (локальный календарный день)
+    if [[ "$STATUS_NAME" == "Done" ]]; then
+      if set_date_field "$ITEM_ID" "Target date" "$(today_ymd)"; then
+        echo "✓ #${n} Target date=$(today_ymd)"
+      else
+        echo "warn: #${n} Target date не выставлен" >&2
+      fi
+    fi
   fi
 done
 

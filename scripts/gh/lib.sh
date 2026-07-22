@@ -177,3 +177,26 @@ set_number_field() {
   fi
   gh project item-edit --id "$item_id" --project-id "$pid" --field-id "$field_id" --number "$value"
 }
+
+# DATE fields: "Start date", "Target date" (YYYY-MM-DD)
+# DPline: Start date = старт задачи; Target date = дата закрытия (Done)
+set_date_field() {
+  local item_id="$1"
+  local field_name="$2"
+  local date_value="${3:-}"
+  local pid field_id
+  if [[ -z "$date_value" ]]; then
+    date_value="$(date +%Y-%m-%d)"
+  fi
+  pid="$(project_id)"
+  field_id="$(field_id_by_name "$field_name")"
+  if [[ -z "$field_id" ]]; then
+    echo "warn: поле $field_name не найдено" >&2
+    return 1
+  fi
+  gh project item-edit --id "$item_id" --project-id "$pid" --field-id "$field_id" --date "$date_value"
+}
+
+today_ymd() {
+  date +%Y-%m-%d
+}
