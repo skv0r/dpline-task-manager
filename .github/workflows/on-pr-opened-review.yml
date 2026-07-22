@@ -38,6 +38,8 @@ jobs:
           else
             export GH_TOKEN="${{ github.token }}"
           fi
+          echo "gh: $(gh --version | head -1)"
+          gh auth status || true
           chmod +x scripts/gh/*.sh
           scripts/gh/set-linked-issues-status.sh \
             "${{ github.event.pull_request.number }}" \
