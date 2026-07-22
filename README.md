@@ -39,3 +39,10 @@ pnpm build  # сборка workspace
 ```
 
 Полноценный API (`/health`) — [#11](https://github.com/skv0r/dpline-task-manager/issues/11), Vite+React — [#12](https://github.com/skv0r/dpline-task-manager/issues/12).
+
+### API (health)
+
+```bash
+pnpm --filter @dpline/api dev
+curl -s http://localhost:3001/health
+```
