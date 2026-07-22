@@ -1,0 +1,48 @@
+name: On PR merged to dev
+
+# main остаётся default branch на сайте GitHub.
+# Closes #N при merge в dev сам GitHub не закрывает — делаем это здесь + Status=Done.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [dev]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  close-and-done:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve token
+        id: token
+        run: |
+          if [ -n "${{ secrets.GH_PROJECT_TOKEN }}" ]; then
+            echo "using=GH_PROJECT_TOKEN" >> "$GITHUB_OUTPUT"
+            echo "::notice::Using GH_PROJECT_TOKEN (issue close + Project Done)"
+          else
+            echo "using=GITHUB_TOKEN" >> "$GITHUB_OUTPUT"
+            echo "::warning::GH_PROJECT_TOKEN не задан — issue закроется, Project Status=Done может не сработать. Settings → Secrets → Actions → GH_PROJECT_TOKEN (scopes: repo, project, read:project)."
+          fi
+
+      - name: Close linked issues + Project Done
+        env:
+          DPLINE_PROJECT_OWNER: skv0r
+          DPLINE_PROJECT_NUMBER: "1"
+        run: |
+          if [ -n "${{ secrets.GH_PROJECT_TOKEN }}" ]; then
+            export GH_TOKEN="${{ secrets.GH_PROJECT_TOKEN }}"
+          else
+            export GH_TOKEN="${{ github.token }}"
+          fi
+          chmod +x scripts/gh/on-pr-merged-dev.sh
+          scripts/gh/on-pr-merged-dev.sh \
+            "${{ github.event.pull_request.number }}" \
+            "${{ github.repository }}"
