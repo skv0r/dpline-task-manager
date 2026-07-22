@@ -8,6 +8,8 @@
 
 Структура: `apps/web`, `apps/api`, позже `packages/*`. Тулчейн — [ADR-001](./plan/decisions/001-monorepo-tooling.md): **pnpm 9 + workspaces**, без Turborepo.
 
+> Используй только **pnpm** из корня репозитория (`pnpm install`). Не запускай `npm i` — сломает workspace.
+
 ### Требования
 
 - **Node** 20.x LTS (`node -v` → например `v20.18.0`)
@@ -31,18 +33,30 @@ pnpm list -r --depth -1
 
 В списке должны быть `dpline-task-manager`, `@dpline/web` и `@dpline/api`.
 
-### Scripts (пока заглушки)
+### Scripts
 
 ```bash
-pnpm dev    # параллельно scripts в apps (TODO #11 / #12)
-pnpm build  # сборка workspace
+pnpm dev         # web + api параллельно
+pnpm build       # сборка workspace
+pnpm lint        # ESLint (сейчас web)
+pnpm typecheck   # tsc по apps/*
 ```
-
-Полноценный API (`/health`) — [#11](https://github.com/skv0r/dpline-task-manager/issues/11), Vite+React — [#12](https://github.com/skv0r/dpline-task-manager/issues/12).
 
 ### API (health)
 
 ```bash
 pnpm --filter @dpline/api dev
 curl -s http://localhost:3001/health
+# → {"status":"ok"}  на http://localhost:3001
 ```
+
+### Web
+
+```bash
+pnpm --filter @dpline/web dev
+# → http://localhost:5173  (страница DPline)
+```
+
+### CI
+
+На PR и push в `dev` / `main` workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) гоняет `pnpm lint` и `pnpm typecheck`.
