@@ -57,8 +57,8 @@
 | Тема | Issue / место |
 |------|----------------|
 | Пакетный менеджер + тулчейн монорепы | [#15](https://github.com/skv0r/dpline-task-manager/issues/15) |
-| NestJS vs Fastify | после Фазы 0 |
-| Prisma vs Drizzle | после Фазы 0 |
+| NestJS vs Fastify | [#34](https://github.com/skv0r/dpline-task-manager/issues/34) → [ADR-002](../decisions/002-api-http-framework.md) (Fastify; Nest позже) |
+| Prisma vs Drizzle | [#34](https://github.com/skv0r/dpline-task-manager/issues/34) → [ADR-003](../decisions/003-orm-prisma.md) (Prisma) |
 | Auth для одного пользователя | после Фазы 0 |
 | Стратегия merge (squash vs merge commit) | по желанию, если начнёт болеть |
 
